@@ -3,8 +3,30 @@
     "Processor Information": [
       {
         "AggregationExpression": "values.Sum()",
-        "InstanceSuffix": "_total",
+        "InstanceSuffix": "_add",
         "Counters": [ "% Privileged Time", "% User Time" ]
+      },
+      {
+        "AggregationExpression": "values.Average()",
+        "InstanceSuffix": "_avg",
+        "Counters": [ "% Processor Time" ]
+      },
+      {
+        "AggregationExpression": "values.Max() - values.Min()",
+        "InstanceSuffix": "_range",
+        "Counters": [ "Temperature" ]
+      }
+    ],
+    "PhysicalDisk": [
+      {
+        "AggregationExpression": "values.Max()",
+        "InstanceSuffix": "_peak",
+        "Counters": [ "Avg. Disk sec/Read" ]
+      },
+      {
+        "AggregationExpression": "values.Count()",
+        "InstanceSuffix": "_count",
+        "Counters": [ "IO Operations" ]
       }
     ]
   }
