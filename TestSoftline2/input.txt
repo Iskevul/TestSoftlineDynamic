@@ -2,3 +2,15 @@
 2024-06-26 07:00:00;Processor Information;% User Time;1;15.3
 2024-06-26 07:00:15;Processor Information;% Privileged Time;;48.92
 2024-06-26 07:00:15;Processor Information;% User Time;1;22.1
+2024-06-26 07:00:00;Processor Information;% Idle Time;;52.717312
+2024-06-26 07:00:00;Processor Information;% Privileged Time;1;52.717312
+2024-06-26 07:00:00; PhysicalDisk; Avg. Disk sec/Read;sda;0.043
+2024-06-26 07:00:00; Process; % User Time;svchost_1204;3.3
+2024-06-26 07:00:15;Processor Information;% Idle Time;;22.12
+2024-06-26 07:00:15;Processor Information;% Privileged Time;1;2.312
+2024-06-26 07:00:15; PhysicalDisk; Avg. Disk sec/Read;sda;2.043
+2024-06-26 07:00:15; Process; % User Time;svchost_1204;13.3
+2024-06-26 07:00:30;Processor Information;% Idle Time;;5.312
+2024-06-26 07:00:30;Processor Information;% Privileged Time;1;5.12
+2024-06-26 07:00:30; PhysicalDisk; Avg. Disk sec/Read;sda;0.743
+2024-06-26 07:00:30; Process; % User Time; svchost_1204;23.3
