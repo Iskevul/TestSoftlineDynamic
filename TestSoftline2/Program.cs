@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using System.Globalization;
 
 public struct CounterSample
 {
@@ -28,8 +29,10 @@ public class AggregationProcessor
 {
     private readonly List<IAggregator> _aggregators = new();
 
-    public AggregationProcessor(string configJson)
+    // Чтение конфигурации из файла
+    public AggregationProcessor(string configPath)
     {
+        var configJson = File.ReadAllText(configPath);
         using var doc = JsonDocument.Parse(configJson);
         var root = doc.RootElement;
         var rulesSection = root.GetProperty("perf.aggregation.rules");
@@ -52,6 +55,28 @@ public class AggregationProcessor
                 _aggregators.Add(aggregator);
             }
         }
+    }
+
+    public static List<CounterSample> ReadInputSamples(string inputPath)
+    {
+        var samples = new List<CounterSample>();
+
+        foreach (var line in File.ReadAllLines(inputPath))
+        {
+            var parts = line.Split(';');
+            if (parts.Length != 5) continue;
+
+            samples.Add(new CounterSample
+            {
+                dt = DateTime.ParseExact(parts[0], "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
+                @object = parts[1].Trim(),
+                counter = parts[2].Trim(),
+                instance = parts[3].Trim(),
+                v = double.Parse(parts[4], CultureInfo.InvariantCulture)
+            });
+        }
+
+        return samples;
     }
 
     public IEnumerable<CounterSample> Process(IEnumerable<CounterSample> input)
@@ -159,45 +184,16 @@ public static class CodeGenerator
     }
 }
 
-// Пример использования
 public class Program
 {
     public static void Main()
     {
-        var configJson = @"
-        {
-            ""perf.aggregation.rules"": {
-                ""Processor Information"": [
-                    {
-                        ""AggregationExpression"": ""values.Sum()"",
-                        ""InstanceSuffix"": ""_total"",
-                        ""Counters"": [""% Privileged Time"", ""% User Time""]
-                    }
-                ]
-            }
-        }";
+        var processor = new AggregationProcessor("config.json");
+        var inputSamples = AggregationProcessor.ReadInputSamples("input.txt");
 
-        var processor = new AggregationProcessor(configJson);
-
-        var input = new List<CounterSample>
+        foreach (var sample in processor.Process(inputSamples))
         {
-            new() {
-                dt = DateTime.Parse("2024-06-26 07:00:00"),
-                @object = "Processor Information",
-                counter = "% User Time",
-                v = 15
-            },
-            new() {
-                dt = DateTime.Parse("2024-06-26 07:00:00"),
-                @object = "Processor Information",
-                counter = "% User Time",
-                v = 25
-            }
-        };
-
-        foreach (var sample in processor.Process(input))
-        {
-            Console.WriteLine($"{sample.dt};{sample.@object};{sample.counter};{sample.instance};{sample.v}");
+            Console.WriteLine($"{sample.dt:yyyy-MM-dd HH:mm:ss};{sample.@object};{sample.counter};{sample.instance};{sample.v}");
         }
     }
 }
