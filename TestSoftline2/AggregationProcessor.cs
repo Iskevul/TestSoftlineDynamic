@@ -1,11 +1,19 @@
 ﻿using System.Globalization;
+using System.Security.AccessControl;
 using System.Text.Json;
 
 public class AggregationProcessor
 {
     private readonly List<IAggregator> _aggregators = new();
 
-    // Чтение конфигурации из файла
+    private static readonly Dictionary<string, int> _objectNameToId = new();
+    private static readonly Dictionary<string, int> _counterNameToId = new();
+    private static readonly Dictionary<string, int> _instanceNameToId = new();
+
+    public Dictionary<string, int> GetObjectDictionary() => _objectNameToId;
+    public Dictionary<string, int> GetCounterDictionary() => _counterNameToId;
+    public Dictionary<string, int> GetInstanceDictionary() => _instanceNameToId;
+
     public AggregationProcessor(string configPath)
     {
         var configJson = File.ReadAllText(configPath);
@@ -40,15 +48,26 @@ public class AggregationProcessor
         foreach (var line in File.ReadAllLines(inputPath))
         {
             var parts = line.Split(';');
-            if (parts.Length != 5) continue;
+            if (parts.Length != 5)
+                throw new FormatException($"Invalid line format: {line}");
+
+            var dt = DateTime.Parse(parts[0].Trim());
+            var objectName = parts[1].Trim();
+            var counterName = parts[2].Trim();
+            var instanceName = parts[3].Trim();
+
+            if (!double.TryParse(parts[4].Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out var value))
+            {
+                throw new FormatException($"Invalid value format: {parts[4]}");
+            }
 
             samples.Add(new CounterSample
             {
-                dt = DateTime.ParseExact(parts[0], "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
-                @object = parts[1].Trim(),
-                counter = parts[2].Trim(),
-                instance = parts[3].Trim(),
-                v = double.Parse(parts[4], CultureInfo.InvariantCulture)
+                dt = dt,
+                @object = objectName,
+                counter = counterName,
+                instance = instanceName,
+                v = value
             });
         }
 
@@ -65,7 +84,35 @@ public class AggregationProcessor
                 output.AddRange(aggregator.Aggregate(timeGroup));
 
             foreach (var sample in output.OrderBy(s => s.dt))
-                yield return sample;
+            {
+                if (!_objectNameToId.TryGetValue(sample.@object, out var objectId))
+                {
+                    objectId = _objectNameToId.Count + 1;
+                    _objectNameToId[sample.@object] = objectId;
+                }
+
+                if (!_counterNameToId.TryGetValue(sample.counter, out var counterId))
+                {
+                    counterId = _counterNameToId.Count + 1;
+                    _counterNameToId[sample.counter] = counterId;
+                }
+
+                if (!_instanceNameToId.TryGetValue(sample.instance, out var instanceId))
+                {
+                    instanceId = _instanceNameToId.Count + 1;
+                    _instanceNameToId[sample.instance] = instanceId;
+                }
+
+                yield return new CounterSample
+                {
+                    dt = sample.dt,
+                    @object = objectId.ToString(),
+                    counter = counterId.ToString(),
+                    instance = instanceId.ToString(),
+                    v = sample.v,
+                };
+            }
+                
         }
     }
 }
