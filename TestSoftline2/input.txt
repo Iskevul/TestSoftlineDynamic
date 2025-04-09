@@ -1,0 +1,4 @@
+2024-06-26 07:00:00;Processor Information;% Privileged Time;;52.71
+2024-06-26 07:00:00;Processor Information;% User Time;1;15.3
+2024-06-26 07:00:15;Processor Information;% Privileged Time;;48.92
+2024-06-26 07:00:15;Processor Information;% User Time;1;22.1

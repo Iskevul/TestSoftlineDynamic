@@ -1,0 +1,11 @@
+{
+  "perf.aggregation.rules": {
+    "Processor Information": [
+      {
+        "AggregationExpression": "values.Sum()",
+        "InstanceSuffix": "_total",
+        "Counters": [ "% Privileged Time", "% User Time" ]
+      }
+    ]
+  }
+}
